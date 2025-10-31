@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dynamic BMI Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+    body {
+        font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+        margin: 0; padding: 0;
+        min-height: 100vh;
+        transition: background-color 0.7s ease;
+        background-color: #f1f7fa;
+    }
+    .container {
+        margin: 36px auto;
+        max-width: 420px;
+        background: #fff;
+        border-radius: 24px;
+        box-shadow: 0 6px 36px rgba(0,170,170,.20);
+        padding: 32px 22px;
+    }
+    h1 {
+        text-align: center;
+        font-size: 2.2em;
+        color: #006f71;
+        margin-bottom: 8px;
+    }
+    .subtitle {
+        text-align: center;
+        color: #1c6160;
+        font-size: 1.05em;
+        margin-bottom: 18px;
+    }
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 11px;
+        margin-bottom: 20px;
+    }
+    input {
+        padding: 12px;
+        border-radius: 10px;
+        border: 2px solid #80d0d0;
+        font-size: 1em;
+        background: #f7fcfc;
+    }
+    button {
+        padding: 11px 12px;
+        background: linear-gradient(90deg,#4cb8c4,#3cd3ad);
+        color: #fff;
+        font-weight: bold;
+        font-size: 1em;
+        border: none;
+        border-radius: 10px;
+        letter-spacing: .5px;
+        box-shadow: 0 3px 12px rgba(56,190,130,0.13);
+        cursor: pointer;
+        transition: background .3s;
+    }
+    button:hover {
+        background: linear-gradient(90deg,#3cd3ad,#4cb8c4);
+    }
+    #result {
+        font-size: 1.2em;
+        text-align: center;
+        margin: 10px 0 10px 0;
+        padding: 9px 15px;
+        border-radius: 12px;
+        background: #e0fbe8;
+        color: #159291;
+        box-shadow: 0 2px 8px rgba(44,152,145,.07);
+    }
+    #tips {
+        font-size: 1em;
+        padding: 12px 15px;
+        border-radius: 14px;
+        background: #ffffffcc;
+        color: #004d40;
+        margin-bottom: 18px;
+        min-height: 80px;
+        box-shadow: inset 0 0 12px #b2dfdb;
+        line-height: 1.4;
+    }
+    #log-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 12px;
+    }
+    #log-table th, #log-table td {
+        border: 1px solid #c3ecee;
+        padding: 6px;
+        text-align: center;
+        font-size: .98em;
+    }
+    #log-table th {
+        background: #d0f7f7;
+        color: #159291;
+    }
+    #export-btn {
+        width: 100%;
+    }
+    @media (max-width: 600px) {
+        .container {
+            max-width: 98vw;
+            padding: 9px;
+        }
+        h1 {
+            font-size: 1.38em;
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BMI Calculator</h1>
+        <div class="subtitle">Input your height and weight:</div>
+        <form id="bmi-form">
+            <input type="number" id="height" placeholder="Height (cm)" required>
+            <input type="number" id="weight" placeholder="Weight (kg)" required>
+            <button type="submit">Calculate BMI</button>
+        </form>
+        <div id="result"></div>
+        <div id="tips"></div>
+        <table id="log-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Height</th>
+                    <th>Weight</th>
+                    <th>BMI</th>
+                    <th>Category</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <button id="export-btn">Export to Excel (CSV)</button>
+    </div>
+
+    <script>
+    const body = document.body;
+    const bmiForm = document.getElementById('bmi-form');
+    const heightInput = document.getElementById('height');
+    const weightInput = document.getElementById('weight');
+    const resultDiv = document.getElementById('result');
+    const tipsDiv = document.getElementById('tips');
+    const logTableBody = document.querySelector('#log-table tbody');
+    const exportBtn = document.getElementById('export-btn');
+
+    let entries = [];
+
+    function getBMICategory(bmi) {
+        if (bmi < 18.5) return "Underweight";
+        if (bmi < 25) return "Normal";
+        if (bmi < 30) return "Overweight";
+        return "Obese";
+    }
+
+    function getBackgroundColor(category) {
+        switch (category) {
+            case "Underweight": return "#ffb74d"; // Orange
+            case "Normal": return "#81c784"; // Green
+            case "Overweight": return "#e57373"; // Red
+            case "Obese": return "#9575cd"; // Purple
+            default: return "#f1f7fa";
+        }
+    }
+
+    function getTips(category) {
+        switch (category) {
+            case "Underweight":
+                return "You are underweight. Consider eating nutrient-rich, calorie-dense foods and consult a nutritionist.";
+            case "Normal":
+                return "Great! Maintain a balanced diet and regular exercise to keep your healthy BMI.";
+            case "Overweight":
+                return "You are overweight. Try to increase physical activity, reduce high-calorie foods, and maintain a balanced diet.";
+            case "Obese":
+                return "Obesity can increase health risks. Consult a healthcare provider for a personalized weight management plan.";
+            default:
+                return "";
+        }
+    }
+
+    function formatDate() {
+        const d = new Date();
+        return d.toLocaleString();
+    }
+
+    bmiForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const height = parseFloat(heightInput.value);
+        const weight = parseFloat(weightInput.value);
+
+        if (!height || !weight || height <= 0 || weight <= 0) {
+            resultDiv.textContent = "Please enter valid height and weight.";
+            resultDiv.style.background = "#ffe0e0";
+            resultDiv.style.color = "#c65c5c";
+            tipsDiv.textContent = "";
+            body.style.backgroundColor = "#f1f7fa";
+            return;
+        }
+
+        const bmi = +(weight / ((height / 100) ** 2)).toFixed(2);
+        const category = getBMICategory(bmi);
+        const tips = getTips(category);
+
+        resultDiv.textContent = `Your BMI: ${bmi} (${category})`;
+        resultDiv.style.background = "#e0fbe8";
+        resultDiv.style.color = "#159291";
+
+        tipsDiv.textContent = tips;
+
+        // Change body background color
+        body.style.backgroundColor = getBackgroundColor(category);
+
+        const entry = {
+            date: formatDate(),
+            height,
+            weight,
+            bmi,
+            category
+        };
+
+        entries.push(entry);
+        renderTable();
+    });
+
+    function renderTable() {
+        logTableBody.innerHTML = '';
+        entries.forEach(e => {
+            let row = `<tr>
+                <td>${e.date}</td>
+                <td>${e.height}</td>
+                <td>${e.weight}</td>
+                <td>${e.bmi}</td>
+                <td>${e.category}</td>
+            </tr>`;
+            logTableBody.innerHTML += row;
+        });
+    }
+
+    exportBtn.addEventListener('click', function() {
+        if (entries.length === 0) {
+            alert('No data to export!');
+            return;
+        }
+        let csv = 'Date,Height (cm),Weight (kg),BMI,Category\n';
+        entries.forEach(e => {
+            csv += `${e.date},${e.height},${e.weight},${e.bmi},${e.category}\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'bmi_log.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    });
+    </script>
+</body>
+</html>
