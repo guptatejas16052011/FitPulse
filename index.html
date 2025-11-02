@@ -1,265 +1,339 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Dynamic BMI Calculator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
+  <meta charset="UTF-8">
+  <title>BMI & Body Analysis Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --main-bg: linear-gradient(135deg,#eef5fc 0%, #dde7f7 100%);
+      --main-card-bg: rgba(255, 255, 255, 0.68);
+      --border-radius: 22px;
+      --shadow: 0 9px 28px rgba(44,74,106,0.15);
+      --primary: #3a91f7;
+      --primary-dark: #1a2950;
+      --success: #48C774;
+      --warning: #F7B267;
+      --error: #F95F62;
+      --obese: #943A4E;
+    }
     body {
-        font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
-        margin: 0; padding: 0;
-        min-height: 100vh;
-        transition: background-color 0.7s ease;
-        background-color: #f1f7fa;
+      min-height: 100vh;
+      background: var(--main-bg);
+      font-family: 'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+      color: #244;
+      margin: 0;
+      transition: background 0.6s;
     }
     .container {
-        margin: 36px auto;
-        max-width: 420px;
-        background: #fff;
-        border-radius: 24px;
-        box-shadow: 0 6px 36px rgba(0,170,170,.20);
-        padding: 32px 22px;
+      max-width: 540px;
+      margin: 38px auto;
+      background: var(--main-card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      padding: 36px 28px 24px 28px;
+      backdrop-filter: blur(12px);
+      transition: background 0.6s;
+      position: relative;
     }
-    h1 {
-        text-align: center;
-        font-size: 2.2em;
-        color: #006f71;
-        margin-bottom: 8px;
+    h2, h3 { text-align: center; }
+    .form-group {
+      margin-bottom: 14px;
     }
-    .subtitle {
-        text-align: center;
-        color: #1c6160;
-        font-size: 1.05em;
-        margin-bottom: 18px;
+    label { font-weight: 600; display: block; margin-bottom: 6px; }
+    input, select {
+      padding: 9px 13px;
+      border-radius: 14px;
+      border: none;
+      font-size: 1.07rem;
+      width: 100%;
+      margin-top: 2px;
+      box-shadow:  3px 3px 8px #dde4f4, -2px -2px 8px #fcfcff;
+      background: #fbfcfe;
+      transition: box-shadow 0.35s;
     }
-    form {
-        display: flex;
-        flex-direction: column;
-        gap: 11px;
-        margin-bottom: 20px;
-    }
-    input {
-        padding: 12px;
-        border-radius: 10px;
-        border: 2px solid #80d0d0;
-        font-size: 1em;
-        background: #f7fcfc;
+    input:focus, select:focus {
+      outline: none;
+      box-shadow: 0 0 2px 2px #3a91f7;
+      background: #f3f8fd;
     }
     button {
-        padding: 11px 12px;
-        background: linear-gradient(90deg,#4cb8c4,#3cd3ad);
-        color: #fff;
-        font-weight: bold;
-        font-size: 1em;
-        border: none;
-        border-radius: 10px;
-        letter-spacing: .5px;
-        box-shadow: 0 3px 12px rgba(56,190,130,0.13);
-        cursor: pointer;
-        transition: background .3s;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 18px;
+      font-weight: 700;
+      padding: 14px 0;
+      font-size: 1.07em;
+      width: 100%;
+      margin-top: 13px;
+      cursor: pointer;
+      box-shadow: 3px 3px 12px #dde5fa, -2px -2px 7px #eaf2fb;
+      transition: background 0.3s, box-shadow 0.35s;
     }
     button:hover {
-        background: linear-gradient(90deg,#3cd3ad,#4cb8c4);
+      background: #0057b8;
+      box-shadow: 0 4px 18px #b1d5fc;
     }
-    #result {
-        font-size: 1.2em;
-        text-align: center;
-        margin: 10px 0 10px 0;
-        padding: 9px 15px;
-        border-radius: 12px;
-        background: #e0fbe8;
-        color: #159291;
-        box-shadow: 0 2px 8px rgba(44,152,145,.07);
+    .meter-bg {
+      width: 100%;
+      height: 20px;
+      border-radius: 12px;
+      background: #e9eefc;
+      margin: 12px 0 14px 0;
+      overflow: hidden;
+      box-shadow:  2px 2px 7px #dde4f4, -2px -2px 5px #e3eafa;
     }
-    #tips {
-        font-size: 1em;
-        padding: 12px 15px;
-        border-radius: 14px;
-        background: #ffffffcc;
-        color: #004d40;
-        margin-bottom: 18px;
-        min-height: 80px;
-        box-shadow: inset 0 0 12px #b2dfdb;
-        line-height: 1.4;
+    .meter-fill {
+      height: 20px;
+      border-radius: 12px;
+      background: #48C774;
+      transition: width 0.7s cubic-bezier(.77,.2,.3,1);
+      box-shadow: 0 2px 12px #b6ecc8;
     }
-    #log-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 12px;
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 13px;
+      margin-bottom: 11px;
     }
-    #log-table th, #log-table td {
-        border: 1px solid #c3ecee;
-        padding: 6px;
-        text-align: center;
-        font-size: .98em;
+    .result-section {margin-top: 29px;font-size: 1.09em;}
+    .tips-box {
+      background: #f4f7fb;
+      padding: 14px 18px;
+      border-radius: 15px;
+      margin-top: 18px;
+      font-size: 1em;
+      color: #3b485c;
+      box-shadow: 1px 1px 4px #dee2eb;
     }
-    #log-table th {
-        background: #d0f7f7;
-        color: #159291;
+    .color-badge {
+      padding:4px 16px;
+      margin-left:12px;
+      border-radius:22px;
+      font-weight:700;
+      font-size:1em;
+      background: var(--primary);
+      color: #fff;
+      letter-spacing:0.04em;
+      user-select:none;
+      box-shadow: 0 2px 7px #b2cdf7;
     }
-    #export-btn {
-        width: 100%;
+    /* Dark mode styles */
+    body.dark-mode {
+      background: linear-gradient(135deg, #1a2950 0%, #27427e 100%);
+      color: #e4e8ee;
     }
-    @media (max-width: 600px) {
-        .container {
-            max-width: 98vw;
-            padding: 9px;
-        }
-        h1 {
-            font-size: 1.38em;
-        }
+    body.dark-mode .container {
+      background: rgba(24,34,54,0.86);
     }
-    </style>
+    body.dark-mode input, body.dark-mode select {
+      background: #222F49;
+      color: #e4e8ee;
+      box-shadow: 2px 2px 9px #172236, -1px -1px 7px #242e48;
+    }
+    body.dark-mode .meter-bg {background: #203060;}
+    body.dark-mode .tips-box {background: #253159;color:#e2e6ec;}
+    .dark-toggle {
+      position: absolute;
+      top: 17px; right: 20px;
+      background: #fbfcfe;
+      border: none;
+      box-shadow: 0 3px 12px #dde5fa;
+      padding: 6px 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.25s;
+    }
+    .dark-toggle:hover {
+      background: #b4cdf4;
+    }
+    .icon-moon {
+      width: 22px; height: 22px; vertical-align: middle; filter: drop-shadow(0 2px 2px #c0e1ee);
+    }
+    .icon-sun {
+      width: 22px; height: 22px; vertical-align: middle; filter: drop-shadow(0 2px 2px #ffcd79);
+    }
+    @media (max-width:700px){
+      .container {margin:10px;padding:13px;}
+      .summary-grid{grid-template-columns:1fr;}
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>BMI Calculator</h1>
-        <div class="subtitle">Input your height and weight:</div>
-        <form id="bmi-form">
-            <input type="number" id="height" placeholder="Height (cm)" required>
-            <input type="number" id="weight" placeholder="Weight (kg)" required>
-            <button type="submit">Calculate BMI</button>
-        </form>
-        <div id="result"></div>
-        <div id="tips"></div>
-        <table id="log-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Height</th>
-                    <th>Weight</th>
-                    <th>BMI</th>
-                    <th>Category</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-        <button id="export-btn">Export to Excel (CSV)</button>
-    </div>
+  <div class="container">
+    <button class="dark-toggle" onclick="toggleDark()">
+      <span id="darkIcon">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="#354" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"></path></svg>
+      </span>
+    </button>
+    <h2>BMI & Body Analysis</h2>
+    <form id="bmiForm" autocomplete="off">
+      <div class="form-group">
+        <label>Height *</label>
+        <input type="number" id="height" min="50" max="255" step="0.1" required>
+        <select id="heightUnit">
+          <option value="cm">cm</option>
+          <option value="in">inches</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Weight *</label>
+        <input type="number" id="weight" min="20" max="300" step="0.1" required>
+        <select id="weightUnit">
+          <option value="kg">kg</option>
+          <option value="lb">lbs</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Waist Circumference (optional)</label>
+        <input type="number" id="waist" min="40" max="180" step="0.1">
+        <select id="waistUnit">
+          <option value="cm">cm</option>
+          <option value="in">inches</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Age *</label>
+        <input type="number" id="age" min="10" max="100" required>
+      </div>
+      <div class="form-group">
+        <label>Gender *</label>
+        <select id="gender">
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Activity Level *</label>
+        <select id="activity">
+          <option value="sedentary">Sedentary</option>
+          <option value="light">Light</option>
+          <option value="moderate">Moderate</option>
+          <option value="active">Active</option>
+          <option value="very">Very Active</option>
+        </select>
+      </div>
+      <button type="submit">Calculate</button>
+    </form>
+    <div id="result" class="result-section"></div>
+  </div>
 
-    <script>
-    const body = document.body;
-    const bmiForm = document.getElementById('bmi-form');
-    const heightInput = document.getElementById('height');
-    const weightInput = document.getElementById('weight');
-    const resultDiv = document.getElementById('result');
-    const tipsDiv = document.getElementById('tips');
-    const logTableBody = document.querySelector('#log-table tbody');
-    const exportBtn = document.getElementById('export-btn');
-
-    let entries = [];
-
-    function getBMICategory(bmi) {
-        if (bmi < 18.5) return "Underweight";
-        if (bmi < 25) return "Normal";
-        if (bmi < 30) return "Overweight";
-        return "Obese";
+  <script>
+    function toCm(height, unit) {
+      return unit === "cm" ? parseFloat(height) : parseFloat(height) * 2.54;
     }
+    function toKg(weight, unit) {
+      return unit === "kg" ? parseFloat(weight) : parseFloat(weight) * 0.453592;
+    }
+    function toWaistCm(waist, unit) {
+      return waist ? (unit === "cm" ? parseFloat(waist) : parseFloat(waist) * 2.54) : 0;
+    }
+    const tips = {
+      Underweight: ["Increase protein intake.", "Eat nutrient-rich foods.", "Add healthy snacks.", "Consult doctor if needed."],
+      Normal: ["Maintain regular exercise.", "Eat balanced diet.", "Monitor your health.", "Keep active daily."],
+      Overweight: ["Add more fiber.", "Reduce sugary drinks.", "Try 30min walking daily.", "Track portions."],
+      Obese: ["Consult health expert.", "Aim for gradual weight loss.", "Increase activity.", "Focus on whole foods."]
+    };
+    const activityMap = {
+      sedentary: 1.2,
+      light: 1.375,
+      moderate: 1.55,
+      active: 1.725,
+      very: 1.9
+    };
+    const catColor = {
+      Underweight: "#F7B267",
+      Normal: "#48C774",
+      Overweight: "#F95F62",
+      Obese: "#943A4E"
+    };
+    document.getElementById("bmiForm").onsubmit = function(e){
+      e.preventDefault();
+      const height = document.getElementById("height").value;
+      const heightUnit = document.getElementById("heightUnit").value;
+      const weight = document.getElementById("weight").value;
+      const weightUnit = document.getElementById("weightUnit").value;
+      const waist = document.getElementById("waist").value;
+      const waistUnit = document.getElementById("waistUnit").value;
+      const age = document.getElementById("age").value;
+      const gender = document.getElementById("gender").value;
+      const activity = document.getElementById("activity").value;
 
-    function getBackgroundColor(category) {
-        switch (category) {
-            case "Underweight": return "#ffb74d"; // Orange
-            case "Normal": return "#81c784"; // Green
-            case "Overweight": return "#e57373"; // Red
-            case "Obese": return "#9575cd"; // Purple
-            default: return "#f1f7fa";
+      if (!height || !weight || !age || !gender || !activity) return;
+
+      const heightCm = toCm(height, heightUnit);
+      const weightKg = toKg(weight, weightUnit);
+      const waistCm = toWaistCm(waist, waistUnit);
+      const heightM = heightCm / 100;
+      const bmi = weightKg / (heightM * heightM);
+
+      let bmiCat;
+      if (bmi < 18.5) bmiCat = "Underweight";
+      else if (bmi < 25) bmiCat = "Normal";
+      else if (bmi < 30) bmiCat = "Overweight";
+      else bmiCat = "Obese";
+
+      let bodyFatPct = "N/A";
+      if (waistCm && heightCm) {
+        if (gender === 'male') {
+          bodyFatPct = (495 / (1.0324 - 0.19077 * Math.log10(waistCm) + 0.15456 * Math.log10(heightCm)) - 450).toFixed(1);
+        } else {
+          bodyFatPct = (495 / (1.29579 - 0.35004 * Math.log10(waistCm) + 0.22100 * Math.log10(heightCm)) - 450).toFixed(1);
         }
+      }
+
+      const minIdeal = (18.5 * heightM * heightM).toFixed(1);
+      const maxIdeal = (24.9 * heightM * heightM).toFixed(1);
+      const bmr = gender === "male"
+        ? Math.round(10 * weightKg + 6.25 * heightCm - 5 * age + 5)
+        : Math.round(10 * weightKg + 6.25 * heightCm - 5 * age - 161);
+      const dailyCal = Math.round(bmr * activityMap[activity]);
+      const waistHtRatio = waistCm ? (waistCm / heightCm).toFixed(2) : "N/A";
+
+      let html = `<h3>Your Health Summary</h3>
+        <div>
+          <strong>BMI:</strong> ${bmi.toFixed(2)} 
+          <span class="color-badge" style="background:${catColor[bmiCat]}">
+            ${bmiCat}
+          </span>
+        </div>
+        <div class="meter-bg">
+          <div class="meter-fill" style="width:${Math.min(Math.max(((bmi-15)/20)*100,0),100)}%;background:${catColor[bmiCat]}"></div>
+        </div>
+        <div class="summary-grid">
+          <div><strong>Body Fat %:</strong> ${bodyFatPct}</div>
+          <div><strong>Ideal Weight:</strong> ${minIdeal}–${maxIdeal} kg</div>
+          <div><strong>BMR:</strong> ${bmr} kcal/day</div>
+          <div><strong>Daily Calorie:</strong> ${dailyCal} kcal/day</div>
+          <div><strong>Waist/Height Ratio:</strong> ${waistHtRatio}</div>
+        </div>`;
+
+      html += `<div class="tips-box"><strong>Tips:</strong> <ul style="margin-left:16px;">` +
+        tips[bmiCat].map(t=> "<li>" + t + "</li>").join("") + "</ul></div>";
+
+      html += `<div style="margin-top:9px;"><strong>Interpretation:</strong> `;
+      if (bmiCat === "Normal") {
+        html += "Your BMI suggests a healthy weight; maintain regular exercise and balanced diet.";
+      } else if(bmiCat === "Underweight") {
+        html += "Your BMI is below balanced range. Consider increasing protein intake and caloric foods.";
+      } else if(bmiCat === "Overweight") {
+        html += "Your BMI indicates above healthy weight. Focus on exercise and nutrition.";
+      } else {
+        html += "Your BMI classifies as obese. Please consult a health expert for personalized advice.";
+      }
+      html += "</div>";
+
+      document.getElementById("result").innerHTML = html;
     }
-
-    function getTips(category) {
-        switch (category) {
-            case "Underweight":
-                return "You are underweight. Consider eating nutrient-rich, calorie-dense foods and consult a nutritionist.";
-            case "Normal":
-                return "Great! Maintain a balanced diet and regular exercise to keep your healthy BMI.";
-            case "Overweight":
-                return "You are overweight. Try to increase physical activity, reduce high-calorie foods, and maintain a balanced diet.";
-            case "Obese":
-                return "Obesity can increase health risks. Consult a healthcare provider for a personalized weight management plan.";
-            default:
-                return "";
-        }
+    // Dark/light mode toggle
+    function toggleDark() {
+      const dark = document.body.classList.toggle("dark-mode");
+      const icon = document.getElementById("darkIcon");
+      icon.innerHTML = dark
+        ? '<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="#FFC73C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></svg>'
+        : '<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="#354" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"></path></svg>';
     }
-
-    function formatDate() {
-        const d = new Date();
-        return d.toLocaleString();
-    }
-
-    bmiForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const height = parseFloat(heightInput.value);
-        const weight = parseFloat(weightInput.value);
-
-        if (!height || !weight || height <= 0 || weight <= 0) {
-            resultDiv.textContent = "Please enter valid height and weight.";
-            resultDiv.style.background = "#ffe0e0";
-            resultDiv.style.color = "#c65c5c";
-            tipsDiv.textContent = "";
-            body.style.backgroundColor = "#f1f7fa";
-            return;
-        }
-
-        const bmi = +(weight / ((height / 100) ** 2)).toFixed(2);
-        const category = getBMICategory(bmi);
-        const tips = getTips(category);
-
-        resultDiv.textContent = `Your BMI: ${bmi} (${category})`;
-        resultDiv.style.background = "#e0fbe8";
-        resultDiv.style.color = "#159291";
-
-        tipsDiv.textContent = tips;
-
-        // Change body background color
-        body.style.backgroundColor = getBackgroundColor(category);
-
-        const entry = {
-            date: formatDate(),
-            height,
-            weight,
-            bmi,
-            category
-        };
-
-        entries.push(entry);
-        renderTable();
-    });
-
-    function renderTable() {
-        logTableBody.innerHTML = '';
-        entries.forEach(e => {
-            let row = `<tr>
-                <td>${e.date}</td>
-                <td>${e.height}</td>
-                <td>${e.weight}</td>
-                <td>${e.bmi}</td>
-                <td>${e.category}</td>
-            </tr>`;
-            logTableBody.innerHTML += row;
-        });
-    }
-
-    exportBtn.addEventListener('click', function() {
-        if (entries.length === 0) {
-            alert('No data to export!');
-            return;
-        }
-        let csv = 'Date,Height (cm),Weight (kg),BMI,Category\n';
-        entries.forEach(e => {
-            csv += `${e.date},${e.height},${e.weight},${e.bmi},${e.category}\n`;
-        });
-
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'bmi_log.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-    });
-    </script>
+  </script>
 </body>
 </html>
